@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online rezervace - Restaurace</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(grey 30%, white 70%) no-repeat center/cover fixed;
+            margin: 0;
+            padding: 0;
+        }
+        .picture {
+            display: flex;
+            position: relative;
+            justify-content: center;
+            margin: 20px;
+        }
+        .main {
+            text-align: center;
+            margin-top: 20px;
+            text-decoration: overline;
+            color: #1111118d;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f4f0f0;
+            border-radius: 8px;
+            transition: all 1s;
+        }
+        .container:hover {
+            box-shadow: 2px 3px 5px 2px #1111118d;
+        }
+        h1, h2 {
+            text-align: center;
+            color: #1111118d;
+        }
+        .edit {
+            color: #111111;
+        }
+        .re {
+            text-align: center;
+            color: navy;
+            font-size: large;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #940f0f8d;
+        }
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        input[type="number"],
+        input[type="time"],
+        select {
+            color: navy;
+            text-align: center;
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin: 5px 0 20px;
+            border: 1px solid #1111118d;
+            border-radius: 4px;
+            box-sizing: border-box;
+            outline-color: navy;
+            transition: all 1s;
+        }
+        input[type="time"] {
+            text-align: left;
+            width: 20%;
+        }
+        input:hover, select:hover {
+            background: rgb(151, 148, 148);
+        }
+        .btn_container {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        button {
+            padding: 10px 20px;
+            color: #1111118d;
+            background: lightgrey;
+            border: none;
+            border-radius: 5px;
+            cursor: cell;
+            outline: none;
+            transition: all 1s;
+        }
+        button:hover {
+            color: navy;
+            box-shadow: 2px 3px 5px 2px #1111118d;
+        }
+        .hidden {
+            display: none;
+        }
+        .reservation-box {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #1111118d;
+            border-radius: 4px;
+            background-color: #ffffff;
+            text-align: left;
+            position: relative;
+        }
+        .reservation-box button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .reservation-box button:hover {
+            background-color: #ff1a1a;
+        }
+        .reservation-box .edit-btn {
+            right: 80px;
+            background-color: #4CAF50;
+        }
+        .reservation-box .edit-btn:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="picture">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQDY5FV5MR-1QLR9JeJ2Z36TaqZstFnM-6jCJeeaLDjsw&s" alt="logo" class="logo">
+        </div>
+        <h1 class="main">Online rezervace - Restaurace</h1>
+        <div id="profile" class="hidden">
+            <h2>Profil</h2>
+            <label for="fullname" class="edit">Jméno:</label>
+            <input type="text" id="fullname" required>
+            <label for="email" class="edit">Email:</label>
+            <input type="email" id="email" required>
+            <div class="btn_container">
+                <button onclick="saveProfile()" class="btn_">Uložit</button>
+            </div>
+        </div>
+        <div id="calendar"></div>
+        <div id="reservation-form" class="hidden">
+            <h2>Vytvořit rezervaci</h2>
+            <label for="time" class="edit">Čas:</label>
+            <input type="time" id="time" required>
+            <label for="people" class="edit">Počet osob:</label>
+            <input type="number" id="people" min="1" required>
+            <label for="repeat" class="edit">Opakování:</label>
+            <select id="repeat">
+                <option value="none" class="re">Žádné</option>
+                <option value="weekly" class="re">Týdně</option>
+                <option value="monthly" class="re">Měsíčně</option>
+            </select>
+            <div class="btn_container">
+                <button onclick="submitReservation()" class="btn_">Potvrdit rezervaci</button>
+            </div>
+        </div>
+        <div id="login-form">
+            <h2>Přihlášení</h2>
+            <label for="username">Uživatelské jméno:</label>
+            <input type="text" id="username" required>
+            <label for="password">Heslo:</label>
+            <input type="password" id="password" required>
+            <button onclick="login()">Přihlásit</button>
+        </div>
+        <div id="reservations"></div>
+    </div>
+
+    <script>
+        function checkLogin() {
+            if (localStorage.getItem('loggedIn') === 'true') {
+                document.getElementById('login-form').style.display = 'none';
+                document.getElementById('profile').classList.remove('hidden');
+                document.getElementById('calendar').style.display = 'block';
+                document.getElementById('reservation-form').classList.remove('hidden');
+            } else {
+                document.getElementById('login-form').style.display = 'block';
+                document.getElementById('profile').classList.add('hidden');
+                document.getElementById('calendar').style.display = 'none';
+                document.getElementById('reservation-form').classList.add('hidden');
+            }
+        }
+
+        function login() {
+            localStorage.setItem('loggedIn', 'true');
+            checkLogin();
+        }
+
+        function saveProfile() {
+            const fullname = document.getElementById('fullname').value;
+            const email = document.getElementById('email').value;
+
+            localStorage.setItem('fullname', fullname);
+            localStorage.setItem('email', email);
+
+            alert('Profil uložen!');
+        }
+
+        function submitReservation() {
+            const fullname = localStorage.getItem('fullname');
+            const email = localStorage.getItem('email');
+
+            if (!fullname || !email) {
+                alert('Nejdřív se přihlašte prosím.');
+                return;
+            }
+
+            const time = document.getElementById('time').value;
+            const people = document.getElementById('people').value;
+            const repeat = document.getElementById('repeat').value;
+
+            const reservations = JSON.parse(localStorage.getItem('reservations')) || [];
+            let datesToReserve = [];
+            if (repeat === 'weekly') {
+                datesToReserve = getWeeklyDates(new Date(time));
+            } else if (repeat === 'monthly') {
+                datesToReserve = getMonthlyDates(new Date(time));
+            } else {
+                datesToReserve = [time];
+            }
+
+            for (let date of datesToReserve) {
+                if (reservations.find(reservation => reservation.time === date)) {
+                    alert(`Rezervace na ${date} již existuje.`);
+                    return;
+                }
+            }
+
+            const maxPeople = parseInt(localStorage.getItem('maxPeople')) || Infinity;
+            if (people > maxPeople) {
+                alert(`Maximální počet osob je ${maxPeople}.`);
+                return;
+            }
+
+            datesToReserve.forEach(date => {
+                reservations.push({ time: date, people });
+            });
+
+            localStorage.setItem('reservations', JSON.stringify(reservations));
+            displayReservation(time, people, repeat);
+            document.getElementById('time').value = '';
+            document.getElementById('people').value = '';
+        }
+
+        function displayReservation(time, people, repeat) {
+            const fullname = localStorage.getItem('fullname');
+            const email = localStorage.getItem('email');
+            const reservationBox = document.createElement('div');
+            reservationBox.className = 'reservation-box';
+            reservationBox.innerHTML = `
+                <strong>Jméno:</strong> ${fullname} <br>
+                <strong>Email:</strong> ${email} <br>
+                <strong>Čas:</strong> ${time} <br>
+                <strong>Počet osob:</strong> ${people} <br>
+                <strong>Opakování:</strong> ${repeat} <br>
+                <button onclick="deleteReservation(this)">Smazat</button>
+                <button class="edit-btn" onclick="editReservation(this)">Upravit</button>
+            `;
+            document.getElementById('reservations').appendChild(reservationBox);
+        }
+
+        function deleteReservation(button) {
+            const reservationBox = button.parentElement;
+            const time = reservationBox.querySelector('strong:nth-child(3)').textContent.split(': ')[1];
+            let reservations = JSON.parse(localStorage.getItem('reservations'));
+            reservations = reservations.filter(reservation => reservation.time !== time);
+            localStorage.setItem('reservations', JSON.stringify(reservations));
+            reservationBox.remove();
+        }
+
+        function editReservation(button) {
+            const reservationBox = button.parentElement;
+            const time = reservationBox.querySelector('strong:nth-child(3)').textContent.split(': ')[1];
+            const people = reservationBox.querySelector('strong:nth-child(4)').textContent.split(': ')[1];
+            const repeat = reservationBox.querySelector('strong:nth-child(5)').textContent.split(': ')[1];
+
+            const newTime = prompt('Nový čas:', time);
+            const newPeople = prompt('Nový počet osob:', people);
+            const newRepeat = prompt('Nové opakování (none, weekly, monthly):', repeat);
+
+            if (newTime !== null) {
+                reservationBox.querySelector('strong:nth-child(3)').innerHTML = `Čas: ${newTime}`;
+            }
+            if (newPeople !== null) {
+                reservationBox.querySelector('strong:nth-child(4)').innerHTML = `Počet osob: ${newPeople}`;
+            }
+            if (newRepeat !== null) {
+                reservationBox.querySelector('strong:nth-child(5)').innerHTML = `Opakování: ${newRepeat}`;
+            }
+
+            const reservations = JSON.parse(localStorage.getItem('reservations'));
+            const index = reservations.findIndex(reservation => reservation.time === time);
+            if (index !== -1) {
+                reservations[index].time = newTime !== null ? newTime : time;
+                reservations[index].people = newPeople !== null ? newPeople : people;
+                reservations[index].repeat = newRepeat !== null ? newRepeat : repeat;
+                localStorage.setItem('reservations', JSON.stringify(reservations));
+            }
+        }
+
+        function getWeeklyDates(startDate) {
+            const dates = [];
+            for (let i = 0; i < 4; i++) {
+                const date = new Date(startDate);
+                date.setDate(date.getDate() + (i * 7));
+                dates.push(date.toISOString());
+            }
+            return dates;
+        }
+
+        function getMonthlyDates(startDate) {
+            const dates = [];
+            for (let i = 0; i < 4; i++) {
+                const date = new Date(startDate);
+                date.setMonth(date.getMonth() + i);
+                dates.push(date.toISOString());
+            }
+            return dates;
+        }
+
+        checkLogin();
+    </script>
+</body>
+</html>
